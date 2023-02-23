@@ -1,4 +1,7 @@
-import { useState } from "react";
+//import { useState } from "react";
+import {Button} from "antd";
+import 'antd/dist/reset.css';
+
 // const MenuBtn = (props) =>{
 //     const { childrend, onClick} = props;
 //     return (
@@ -7,12 +10,12 @@ import { useState } from "react";
 // }
 
 function MenuBtn({text}){
-    const [name, setName] = useState("");
-    const onClick = () => setName({text})
-    console.log({name})
+    //const [name, setName] = useState("");
+    //const onClick = () => setName({text})
+    //console.log({name})
     return(
     <div>
-    <button onClick={onClick}>{text}</button>
+    <Button type='primary'>{text}</Button>
     </div>
     );
 }
