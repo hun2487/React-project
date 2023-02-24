@@ -42,8 +42,7 @@ import useOnDraw from "./Drawing/Drawing";
 //     </div>
 //     )
 // }
-const Canvas = () => {
-
+const Canvas = (props) => {
     const {
         setCanvasRef,
         onCanvasMouseDown

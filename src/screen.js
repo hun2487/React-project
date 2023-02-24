@@ -9,6 +9,7 @@ const { Header, Sider} = Layout;
 const {Title} = Typography;
 
 function Test(){
+    //const [content, setcontent] = useState(); //setcontent로 메뉴를 받아오고 content를 메인에 보내줌.
     return(
         <div className="test">
             <Layout>

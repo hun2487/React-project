@@ -1,9 +1,11 @@
 import { Layout, Breadcrumb } from "antd";
 import Canvas from "./Canvas";
+//import MenuBtn from "../components/menubar/button/MenuBtn";
 
 const { Content} = Layout;
 
-function ScreenMode(){
+function ScreenMode(props){
+    //const [content, setcontent] = useState()
     return(
 <Layout>
 <Content style={{padding: "0 50px"}}>
