@@ -1,6 +1,7 @@
-//import { useState } from "react";
+//import { useState} from "react";
 import {Button} from "antd";
 import 'antd/dist/reset.css';
+import Main from "../../../screenMode/Canvas";
 
 // const MenuBtn = (props) =>{
 //     const { childrend, onClick} = props;
@@ -10,12 +11,14 @@ import 'antd/dist/reset.css';
 // }
 
 function MenuBtn({text}){
-    //const [name, setName] = useState("");
-    //const onClick = () => setName({text})
-    //console.log({name})
+    
     return(
     <div>
-    <Button type='primary'>{text}</Button>
+    <Button onClick={Main}
+            style={{margin:35, width: "100px", height:"30px"}}
+             type='dashed'>
+                {text}
+    </Button>
     </div>
     );
 }
