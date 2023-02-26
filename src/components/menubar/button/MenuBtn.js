@@ -5,13 +5,13 @@ import 'antd/dist/reset.css';
 function MenuBtn({text}){
     
     return(
-    <div>
-    <Button 
-            style={{margin:35, width: "100px", height:"30px"}}
-            type='dashed'>
-                {text}
-    </Button>
-    </div>
+        <div>
+            <Button 
+                    style={{margin:35, width: "100px", height:"30px"}}
+                    type='dashed'>
+                        {text}
+            </Button>
+        </div>
     );
 }
 

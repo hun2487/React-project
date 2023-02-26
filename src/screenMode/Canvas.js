@@ -2,54 +2,20 @@ import useOnDraw from "./Drawing/Drawing";
 //import React, { useRef, useEffect, useState } from 'react'
 
 //const defaultStyle = { border: '1px solid gray', display: 'inline-block', margin: '1rem' }
+import { Layout, Breadcrumb } from "antd";
 
-// function Drawing(){
-//     const canvasRef = useRef(null);
-//     const [ctx, setCtx] = useState();
-//     const [pos, setPos] = useState([]);
-//     const [isDraw, setIsDraw] = useState(false);
+const {Content} = Layout;
 
-//     useEffect(() => {
-//         const canvas = canvasRef.current;
-//         setCtx(canvas.getContext("2d"));
-//     }, []);
 
-//     function drawStart(e){
-//         setIsDraw(true);
-//         setPos([e.clientX - canvasRef.current.offsetLeft, e.clientY - canvasRef.current.offsetTop])
-//     }
-
-//     function drawSquare(e){
-//         if (!isDraw) return;
-
-//         ctx.clearRect(0,0,canvasRef.current.width, canvasRef.current.height);
-//         ctx.strokeStyle = "red";
-//         let currentX = e.clientX - canvasRef.current.offsetLeft;
-//         let currentY = e.clientY - canvasRef.current.offsetTop;
-//         ctx.strokeRect(pos[0], pos[1], currentX - pos[0], currentY - pos[1]);
-//     }
-
-//     function drawEnd(){
-//         setIsDraw(false);
-//     }
-
-//     return (
-//     <div className='container' >
-//         <canvas ref={canvasRef} width={700} height={400} style={defaultStyle}
-//         onMouseDown={drawStart}
-//         onMouseMove={drawSquare}
-//         onMouseUp={drawEnd} />
-//     </div>
-//     )
-// }
-const Canvas = (props) => {
+const Canvas = () => {
     const {
         setCanvasRef,
         onCanvasMouseDown
     } = useOnDraw(onDraw);
 
     function onDraw(ctx, point, prevPoint) {
-        drawLine(prevPoint, point, ctx, '#000000', 5);
+        drawLine(prevPoint, point, ctx, '#000000', 2);
+        console.log(point.x);
     }
 
     function drawLine(
@@ -64,16 +30,23 @@ const Canvas = (props) => {
         ctx.lineWidth = width;
         ctx.strokeStyle = color;
         ctx.moveTo(start.x, start.y);
+        //ctx.strokeRect(start.x, start.y,end.x-start.x, end.y-start.y)
         ctx.lineTo(end.x, end.y);
         ctx.stroke();
 
-        ctx.fillStyle = color;
-        ctx.beginPath();
-        ctx.arc(start.x, start.y, 2, 0, 2 * Math.PI);
-        ctx.fill();
+        //ctx.fillStyle = color;
+        //ctx.beginPath();
+        //ctx.arc(start.x, start.y, 2, 0, 2 * Math.PI);
+        //ctx.fill();
     }
 
+
     return(
+    <Layout>
+        <Content style={{padding: "0 50px"}}>
+            <Breadcrumb style={{margin: "16px 0"}}>
+            </Breadcrumb>
+    <div style={{background:"#fff", padding:24, minHeight:500}}>
         <canvas
             width="700"
             height="300"
@@ -81,12 +54,16 @@ const Canvas = (props) => {
             style={canvasStyle}
             ref={setCanvasRef}
         />
+    </div>
+        </Content>
+    </Layout>
     );
 
 }
 
 const canvasStyle = {
-    border: "1px solid black"
+    border: "1px solid black",
+    display: 'inline-block',
 }
 
 export default Canvas;
