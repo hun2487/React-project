@@ -5,7 +5,6 @@ import {Link} from "react-router-dom"
 
 function MenuBar(){
     return (
-        <>
     <div>
         <div className="MenuBar">
             <h2 style={{textAlign:'center'}}>Menu</h2>
@@ -20,7 +19,6 @@ function MenuBar(){
             <div><MenuBtn text="Save"/></div>
         </div>
     </div>
-    </>
     );
 }
 
