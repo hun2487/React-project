@@ -22,5 +22,9 @@
 }
 
 .ColorControl{
-    float: right;
+    float: left;
+}
+
+.inputStyle{
+  position: 'fixed';
 }

@@ -1,9 +1,9 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import Canvas from "../screenMode/Canvas";
-import Drawing2 from "../screenMode/Drawing/Drawing2";
+import Drawing from "../screenMode/Drawing";
 import {Layout} from "antd";
 import MenuBar from "../components/menubar/MenuBar";
 import { LaptopOutlined} from '@ant-design/icons'
+import Attribute from "../attribute/grid";
 
 const { Header, Sider} = Layout;
 
@@ -20,8 +20,8 @@ function Router(){
             <MenuBar />
         </Sider>
             <Routes>
-                <Route path="/drawing" element={<Canvas />}/>
-                <Route path="/drawinglist" element ={<Drawing2 />}/>
+                <Route path="/drawing" element ={<Drawing />} /> 
+                {/* <Route path="/drawinglist" element ={<Drawing2 />}/> */}
             </Routes>
             </Layout>
         </Layout>
