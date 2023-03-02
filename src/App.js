@@ -4,8 +4,8 @@ import "./app.css"
 function App() {
   return (
     <div className='container'>
-      <MenuBar />
-      <div className='others'>asdfasdfsdfsa</div>
+      {/* <MenuBar /> */}
+      <div className='others'></div>
     </div>
   );
 }
