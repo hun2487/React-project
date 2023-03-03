@@ -1,5 +1,4 @@
 import MenuBar from './components/menubar/MenuBar';
-import "./app.css"
 
 function App() {
   return (

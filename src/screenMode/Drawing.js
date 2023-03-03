@@ -1,26 +1,20 @@
 import React from "react";
 import {useRef, useState, useEffect} from "react";
-import { Layout } from "antd";
+import { Layout} from "antd";
 import "./canvas.css";
 import lineimg from './line.png';
 import recimg from './rectangle.png';
 import textimg from './text.png';
 import 'tui-grid/dist/tui-grid.css';
 import polygonimg from './polygon.png';
-import Grid from 'tui-grid';
+import Grid from '@toast-ui/react-grid'
 
 const { Content } = Layout;
 
 function Drawing(){
-    const data = [
-        {mode: 'line', color: 'blue'},
-      ];
-      
-      const columns = [
-        {name: 'mode', header: 'Mode'},
-        {name: 'color', header: 'Color'},
-    
-      ];
+    const [state, setState] = useState('');
+
+    const [list, setList] = useState([]);
 
     const canvasRef = useRef(null);
     const [ctx, setCtx] = useState();
@@ -33,9 +27,20 @@ function Drawing(){
     const [polygon, setPolygon] = useState([]); 
      
     const [recpos, setRecPos] = useState([]); // rectangle 위치
+
     const [linepos, setLinePos] = useState([]); // line 위치
+
     const [isDraw, setIsDraw] = useState(false); //isDrawing
     const [text, setText] = useState();
+
+    const data = [
+        {mode: mode, color: color},
+      ];
+      
+    const columns = [
+        {name: 'mode', header: 'Mode'},
+        {name: 'color', header: 'Color'},
+      ];
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -48,7 +53,6 @@ function Drawing(){
         //버튼 눌렀을 때 시작위치
         ctx.lineWidth = 3;
         ctx.strokeStyle = color;
-        console.log(linepos);
     }
     
     function drawLineEnd(e){
@@ -56,12 +60,22 @@ function Drawing(){
         let currentX = e.clientX - canvasRef.current.offsetLeft;
         let currentY = e.clientY - canvasRef.current.offsetTop;
         console.log(linepos)
-        ctx.beginPath() //새로운 선 긋기 => 호출하지 않으면 계속 이어짐.
+        ctx.beginPath(); //새로운 선 긋기 => 호출하지 않으면 계속 이어짐.
         ctx.moveTo(currentX, currentY);
         ctx.lineTo(linepos[0], linepos[1]); //마우스 땠을 때 좌표랑 이어줌.
         ctx.stroke();
         ctx.closePath();
         setIsDraw(false);
+        const linelist = {
+            category: "line",
+            mx: currentX,
+            my: currentY,
+            lx: linepos[0],
+            ly: linepos[1],
+            color: color,
+        }
+        setList(list.concat(linelist)); //json 추가
+        console.log(JSON.stringify(list));
     }
 
     function drawPolygon(e){
@@ -116,6 +130,16 @@ function Drawing(){
         let currentY = e.clientY - canvasRef.current.offsetTop;
         ctx.strokeRect(recpos[0], recpos[1], currentX - recpos[0], currentY - recpos[1]);        
         setIsDraw(false);
+        setIsDraw(false);
+        const reclist = {
+            category: "rectangle",
+            mx: recpos[0],
+            my: recpos[1],
+            lx: currentX-recpos[0],
+            ly: currentX-recpos[1],
+            color: color,
+        }
+        setList(list.concat(reclist)); //json 추가.
     }
 
     function AddInput(bool){
@@ -125,6 +149,7 @@ function Drawing(){
             onKeyDown={handleEnter}
             //disabled={bool}
             placeholder={"enter를 입력하세요."}
+            required
             />
         );
     }
@@ -137,30 +162,60 @@ function Drawing(){
     }
 
     function drawText(e){
-        let currentX = e.clientX - canvasRef.current.offsetLeft;
-        let currentY = e.clientY - canvasRef.current.offsetTop;
-        ctx.textBaseline = "top";
-        ctx.textAligh = "left";
-        ctx.font = "14px sans-serif";
-        ctx.fillStyle = color;
-        ctx.fillText(text, currentX, currentY);
+        if(text === undefined){
+            alert("text를 입력하세요")
+        }else{
+            let currentX = e.clientX - canvasRef.current.offsetLeft;
+            let currentY = e.clientY - canvasRef.current.offsetTop;
+            ctx.textBaseline = "top";
+            ctx.textAligh = "left";
+            ctx.font = "14px sans-serif";
+            ctx.fillStyle = color;
+            ctx.fillText(text, currentX, currentY);
+            const textlist = {
+                category: "text",
+                text: text,
+                lx: currentX,
+                ly: currentY,
+                color: color,
+            }
+            setList(list.concat(textlist));
+        }
     }
 
-    function A(){
-       
-      
-        return(
-          <Grid 
-          data = {data}
-          columns={columns}
-          clientWidth={30}
-          // rowHeight={2}
-          // bodyHeight={10}
-          // rowHeaders={["rowNum"]}
-          // onEditingStart={()=>console.log("gdgd")}
-        />
-        )
-      };
+    function json_file_export(){ //파일 export
+            const fileName = 'draw.json';
+            const output = JSON.stringify(list);
+            const element = document.createElement('a');
+             const file = new Blob([output], {
+                 type: "text/json",
+             });
+            element.href = URL.createObjectURL(file);
+            element.download = fileName;
+            element.click();
+    }
+
+    
+
+    function json_file_import(e){
+        
+        //this.state = {fileNmae: '', fileContent: ''};
+
+        const file = e.target.files[0];
+        const fileReader = new FileReader();
+        //fileReader.readAsJson(file);
+        fileReader.readAsBinaryString(file); //읽어지긴 하는데 곤란함,,,,,,
+        fileReader.onload = () => {
+            //this.setState({fileName: file.name, fileContent: fileReader.result});
+            setState(fileReader.result);
+        }
+        fileReader.onerror = () =>{
+            console.log('file error', fileReader.error)
+        }
+
+        console.log(state);
+    }
+    
 
     return (
     <Layout>
@@ -176,10 +231,12 @@ function Drawing(){
                 <img src={polygonimg} width='30' height='30'  onClick={() => setMode("polygon")}></img>
                 <AddInput bool={true} />
                 <button disabled={false} onClick={drawPolygondouble}>poly draw</button>
+                <button disabled={false} onClick={json_file_export} style={{float:"right"}}>export</button>
+                <input style={{float:"right"}} type={"file"} onChange={json_file_import}/>
         </div>
-        <Content style={{margin:10 ,padding: "0 20px", flex:1.5}}>
-        
-                    <canvas id="canvas" style={canvasStyle} ref={canvasRef} width={500} height={500} 
+
+        <Content className="container" style={{margin:10 ,padding: "0 20px"}}>
+                    <canvas className="canvas" style={canvasStyle} ref={canvasRef} width={500} height={500} 
                         onMouseDown={(e) =>
                             {
                                 if(mode ==="line"){
@@ -187,7 +244,6 @@ function Drawing(){
                                 }else if(mode === "rectangle"){
                                     drawRecStart(e);
                                 }else if(mode === "text"){
-                                    //handleEnter(e);
                                     drawText(e);
                                 }else if(mode ==="polygon"){
                                     drawPolygon(e);
@@ -210,20 +266,22 @@ function Drawing(){
                         onMouseLeave={
                             () => setIsDraw(false)
                         }
-                    /> 
-                    
-                    <div id="gridbox" style={{width:800,height:800, flex:0.5, display: "inline"}}>
-                        {/* <Grid data={data} columns={columns} clientWidth={100}/> */}
+                    />
+                     <div className="grid" style={{width:300, flex:50, display: "inline-block"}}>
+                        <Grid data={data} columns={columns} rowHeight={25} bodyHeight={30}/>
                     </div>
         </Content>
-        
+
     </Layout>
     );
 }
 
+
 const canvasStyle = {
-    border: "1px solid black"
-    // display: 'inline-block',
+    border: "1px solid black",
+    //display: "inline-flex"
+     display: 'inline-block',
+    background: "white" 
 }
 
 export default Drawing;

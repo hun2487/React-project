@@ -3,7 +3,7 @@ import Drawing from "../screenMode/Drawing";
 import {Layout} from "antd";
 import MenuBar from "../components/menubar/MenuBar";
 import { LaptopOutlined} from '@ant-design/icons'
-import Attribute from "../attribute/grid";
+import Table from "../attribute/grid";
 
 const { Header, Sider} = Layout;
 
@@ -21,7 +21,7 @@ function Router(){
         </Sider>
             <Routes>
                 <Route path="/drawing" element ={<Drawing />} /> 
-                {/* <Route path="/drawinglist" element ={<Drawing2 />}/> */}
+                <Route path="/drawinglist" element ={<Table />}/>
             </Routes>
             </Layout>
         </Layout>

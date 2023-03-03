@@ -28,3 +28,9 @@
 .inputStyle{
   position: 'fixed';
 }
+
+.container{
+  flex-direction: row;
+}
+
+
