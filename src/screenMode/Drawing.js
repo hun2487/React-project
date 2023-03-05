@@ -1,18 +1,17 @@
 import React from "react";
 import {useRef, useState, useEffect} from "react";
-import { Layout} from "antd";
+import { Button, Layout} from "antd";
 import "./canvas.css";
 import lineimg from './line.png';
 import recimg from './rectangle.png';
 import textimg from './text.png';
 import 'tui-grid/dist/tui-grid.css';
 import polygonimg from './polygon.png';
-import Grid from '@toast-ui/react-grid'
+import Grid from '@toast-ui/react-grid';
 
 const { Content } = Layout;
 
 function Drawing(){
-    const [state, setState] = useState('');
 
     const [list, setList] = useState([]);
 
@@ -36,11 +35,21 @@ function Drawing(){
     const data = [
         {mode: mode, color: color},
       ];
-      
+    
     const columns = [
         {name: 'mode', header: 'Mode'},
         {name: 'color', header: 'Color'},
       ];
+
+    const InputRef = () => {
+        const selectFile = useRef("");
+        return(
+            <Button onClick={() => selectFile.current.click()} style={{float:"right"}}>
+                <input style={{float:"right", display:"none"}} ref={selectFile} type={"file"} onChange={json_file_import}></input>
+                Import</Button>
+        )
+    }
+
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -82,14 +91,14 @@ function Drawing(){
         let currentX = e.clientX - canvasRef.current.offsetLeft;
         let currentY = e.clientY - canvasRef.current.offsetTop;
         
-        setCount(count+1)
+        setCount(count+1);
         setIsDraw(true);
         setPolygon([count ,e.clientX - canvasRef.current.offsetLeft, e.clientY - canvasRef.current.offsetTop])
         //버튼 눌렀을 때 시작위치
         ctx.lineWidth = 3;
         ctx.strokeStyle = color;
-        console.log(currentX, currentY)
-        ctx.beginPath()
+        //console.log(currentX, currentY);
+        ctx.beginPath();
         ctx.moveTo(currentX, currentY);
         ctx.lineTo(polygon[1], polygon[2]); //마우스 땠을 때 좌표랑 이어줌.
         ctx.stroke();
@@ -130,16 +139,17 @@ function Drawing(){
         let currentY = e.clientY - canvasRef.current.offsetTop;
         ctx.strokeRect(recpos[0], recpos[1], currentX - recpos[0], currentY - recpos[1]);        
         setIsDraw(false);
-        setIsDraw(false);
         const reclist = {
             category: "rectangle",
             mx: recpos[0],
             my: recpos[1],
             lx: currentX-recpos[0],
-            ly: currentX-recpos[1],
+            ly: currentY-recpos[1],
             color: color,
         }
         setList(list.concat(reclist)); //json 추가.
+        console.log(recpos[0], recpos[1], currentX - recpos[0], currentY - recpos[1])
+        console.log(list);
     }
 
     function AddInput(bool){
@@ -195,48 +205,65 @@ function Drawing(){
             element.click();
     }
 
-    
-
     function json_file_import(e){
-        
-        //this.state = {fileNmae: '', fileContent: ''};
-
         const file = e.target.files[0];
-        const fileReader = new FileReader();
-        //fileReader.readAsJson(file);
-        fileReader.readAsBinaryString(file); //읽어지긴 하는데 곤란함,,,,,,
-        fileReader.onload = () => {
-            //this.setState({fileName: file.name, fileContent: fileReader.result});
-            setState(fileReader.result);
-        }
-        fileReader.onerror = () =>{
-            console.log('file error', fileReader.error)
+        if (file){
+            const reader = new FileReader();
+            reader.onload = handleFileRead;
+            reader.readAsText(file);
         }
 
-        console.log(state);
+    function handleFileRead(e){
+        const jsonData = JSON.parse(e.target.result);
+        for(var i=0; i<jsonData.length; i++){ //Json file 한 줄씩 읽기.
+            let type = jsonData[i];
+            console.log(type);
+            if(type.category === 'line'){ //line import
+                setIsDraw(true);
+                ctx.strokeStyle = type.color;
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(type.mx,type.my);
+                ctx.lineTo(type.lx, type.ly);
+                ctx.stroke();
+                ctx.closePath();
+                setIsDraw(false);
+            }else if(type.category === 'rectangle'){ //rectangle import
+                setIsDraw(true);
+                ctx.strokeStyle = type.color;
+                ctx.lineWidth = 3;
+                ctx.strokeRect(type.mx, type.my, type.lx, type.ly);
+                setIsDraw(false);
+            }else if(type.category === "text"){ //text import
+                ctx.textBaseline="top";
+                ctx.font = "14px sans-serif";
+                ctx.fillStyle = type.color;
+                ctx.fillText(type.text, type.lx, type.ly);
+                }
+            }
+        }
     }
     
 
     return (
     <Layout>
-        <div className="ColorControl" style={{float:"right", padding:5, width:"50%"}}>
+        <div className="ColorControl" style={{float:"right", padding:5, width:"80%"}}>
                 <button className="color-btn" data-color="black" onClick={() => setColor("black")}></button>
                 <button className="color-btn" data-color="red" onClick={() => setColor("red")}></button>
                 <button className="color-btn" data-color="green" onClick={() => setColor("green")}></button>
                 <button className="color-btn" data-color="blue" onClick={() => setColor("blue")}></button>
-                
                 <img src={lineimg} width='30' height='30' onClick={() => setMode("line")}></img>
                 <img src={recimg} width='30' height='30' onClick={() => setMode("rectangle")}></img>
                 <img src={textimg} width='30' height='30'  onClick={() => setMode("text")}></img>
                 <img src={polygonimg} width='30' height='30'  onClick={() => setMode("polygon")}></img>
                 <AddInput bool={true} />
                 <button disabled={false} onClick={drawPolygondouble}>poly draw</button>
-                <button disabled={false} onClick={json_file_export} style={{float:"right"}}>export</button>
-                <input style={{float:"right"}} type={"file"} onChange={json_file_import}/>
+                <Button disabled={false} onClick={json_file_export} style={{float:"right"}}>export</Button>
+                <InputRef />
         </div>
 
         <Content className="container" style={{margin:10 ,padding: "0 20px"}}>
-                    <canvas className="canvas" style={canvasStyle} ref={canvasRef} width={500} height={500} 
+                    <canvas className="canvas" style={canvasStyle} ref={canvasRef} width={800} height={500} 
                         onMouseDown={(e) =>
                             {
                                 if(mode ==="line"){
