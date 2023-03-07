@@ -1,6 +1,6 @@
 import React from "react";
 import {useRef, useState, useEffect} from "react";
-import { Button, Layout} from "antd";
+import { Button,Input, Layout} from "antd";
 import "./canvas.css";
 import lineimg from './line.png';
 import recimg from './rectangle.png';
@@ -8,12 +8,15 @@ import textimg from './text.png';
 import 'tui-grid/dist/tui-grid.css';
 import polygonimg from './polygon.png';
 import Grid from '@toast-ui/react-grid';
+import axios from 'axios';
 
 const { Content } = Layout;
 
 function Drawing(){
+    
+    const url = "http://localhost:8080";
 
-    const [list, setList] = useState([]);
+    const [list, setList] = useState([]); //Json
 
     const canvasRef = useRef(null);
     const [ctx, setCtx] = useState();
@@ -44,7 +47,7 @@ function Drawing(){
     const InputRef = () => {
         const selectFile = useRef("");
         return(
-            <Button onClick={() => selectFile.current.click()} style={{float:"right"}}>
+            <Button onClick={() => selectFile.current.click()} style={{left:"350px"}}>
                 <input style={{float:"right", display:"none"}} ref={selectFile} type={"file"} onChange={json_file_import}></input>
                 Import</Button>
         )
@@ -84,7 +87,7 @@ function Drawing(){
             color: color,
         }
         setList(list.concat(linelist)); //json 추가
-        console.log(JSON.stringify(list));
+        console.log(list);
     }
 
     function drawPolygon(e){
@@ -94,27 +97,53 @@ function Drawing(){
         setCount(count+1);
         setIsDraw(true);
         setPolygon([count ,e.clientX - canvasRef.current.offsetLeft, e.clientY - canvasRef.current.offsetTop])
-        //버튼 눌렀을 때 시작위치
+        //마우스 눌렀을 때 커서 위치
         ctx.lineWidth = 3;
         ctx.strokeStyle = color;
-        //console.log(currentX, currentY);
         ctx.beginPath();
         ctx.moveTo(currentX, currentY);
         ctx.lineTo(polygon[1], polygon[2]); //마우스 땠을 때 좌표랑 이어줌.
         ctx.stroke();
         ctx.closePath();
         setLastCoordinate(lastcoordinate.concat(polygon));
+
+        //console.log(polygon);
+        const polylist = {
+            category: "polygon",
+            mx: currentX,
+            my: currentY,
+            position: polygon[0],
+            lx: polygon[1],
+            ly: polygon[2],
+            color: color,
+        }
+        setList(list.concat(polylist));
+
+        console.log(polylist);
     }
 
-    function drawPolygondouble(){
+    function drawPolygonclose(){
         ctx.lineWidth = 3;
         ctx.strokeStyle = color;
-        ctx.beginPath()
-        //ctx.moveTo(coordinate[0], coordinate[1]);
+        ctx.beginPath();
         ctx.moveTo(polygon[1],polygon[2]);
         ctx.lineTo(lastcoordinate[1], lastcoordinate[2]); //처음 좌표
         ctx.stroke();
         ctx.closePath();
+
+        const lastpolylist = {
+            category: "polygon",
+            mx: polygon[1],
+            my: polygon[2],
+            position: polygon[0] + 1,
+            lx: lastcoordinate[1],
+            ly: lastcoordinate[2],
+            color: color,
+        }
+
+        console.log(lastpolylist);
+        setList(list.concat(lastpolylist));
+
         //값 초기화
         setPolygon([]);
         setLastCoordinate([]);
@@ -154,11 +183,12 @@ function Drawing(){
 
     function AddInput(bool){
         return (
-            <input
-            style={{width:"200px"}}
+            <Input
+            style={{width:"200px",
+                    left:"120px"}}
             onKeyDown={handleEnter}
             //disabled={bool}
-            placeholder={"enter를 입력하세요."}
+            placeholder={"text를 입력하세요."}
             required
             />
         );
@@ -239,12 +269,31 @@ function Drawing(){
                 ctx.font = "14px sans-serif";
                 ctx.fillStyle = type.color;
                 ctx.fillText(type.text, type.lx, type.ly);
+            }else if(type.category === "polygon"){ //polygon import
+                setIsDraw(true);
+                ctx.strokeStyle = type.color;
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(type.mx, type.my);
+                ctx.lineTo(type.lx, type.ly);
+                ctx.stroke();
+                ctx.closePath();
+                setIsDraw(false);
                 }
             }
         }
     }
+    //JSON.stringify(list)
+    function Save(){
+        axios.post('/drawing',JSON.stringify(list) ,{
+            headers: {
+                "Content-Type" : `application/json`, //"text/plain"// `application/json`, //서버에 json으로 보냄
+            }
+        }).then((res) =>{
+            console.log(res)
+        })
+    }
     
-
     return (
     <Layout>
         <div className="ColorControl" style={{float:"right", padding:5, width:"80%"}}>
@@ -257,9 +306,10 @@ function Drawing(){
                 <img src={textimg} width='30' height='30'  onClick={() => setMode("text")}></img>
                 <img src={polygonimg} width='30' height='30'  onClick={() => setMode("polygon")}></img>
                 <AddInput bool={true} />
-                <button disabled={false} onClick={drawPolygondouble}>poly draw</button>
-                <Button disabled={false} onClick={json_file_export} style={{float:"right"}}>export</Button>
+                <Button disabled={false} onClick={drawPolygonclose} style={{left:"230px"}}>poly draw</Button>
+                <Button disabled={false} onClick={json_file_export} style={{left:"350px"}}>export</Button>
                 <InputRef />
+                <Button style={{left:"350px"}} onClick={Save}>Save</Button>
         </div>
 
         <Content className="container" style={{margin:10 ,padding: "0 20px"}}>
@@ -306,7 +356,6 @@ function Drawing(){
 
 const canvasStyle = {
     border: "1px solid black",
-    //display: "inline-flex"
      display: 'inline-block',
     background: "white" 
 }

@@ -4,6 +4,7 @@ import {Layout} from "antd";
 import MenuBar from "../components/menubar/MenuBar";
 import { LaptopOutlined} from '@ant-design/icons'
 import Table from "../attribute/grid";
+import Test from "../attribute/test";
 
 const { Header, Sider} = Layout;
 
@@ -21,7 +22,7 @@ function Router(){
         </Sider>
             <Routes>
                 <Route path="/drawing" element ={<Drawing />} /> 
-                <Route path="/drawinglist" element ={<Table />}/>
+                <Route path="/drawinglist" element ={<Test />}/>
             </Routes>
             </Layout>
         </Layout>

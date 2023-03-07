@@ -14,9 +14,9 @@ function MenuBar(){
             <Link to="drawinglist">
                 <MenuBtn text="Drawing List"/>
             </Link>
-            <div><MenuBtn text="Import"/></div>
+            {/* <div><MenuBtn text="Import"/></div>
             <div><MenuBtn text="Export"/></div>
-            <div><MenuBtn text="Save"/></div>
+            <div><MenuBtn text="Save"/></div> */}
         </div>
     </div>
     );
