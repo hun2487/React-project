@@ -1,27 +1,52 @@
 import Grid from '@toast-ui/react-grid'
+import axios from 'axios';
+import { useEffect, useState } from 'react';
 import 'tui-grid/dist/tui-grid.css'
 
+function Table(){
 
-const columns = [
-  {name: 'mode', header: 'Mode'},
-  {name: 'color', header: 'Color'},
-];
+  const [data, setData] = useState([]);
 
-const data = [
-  {mode: 'line', color: 'blue'},
-];
+  const columns = [
+    {name: 'id', header: 'ID'},
+    {name: 'name', header: 'Name'},
+  ];
 
-const Table = (props) =>{
+  useEffect(() => {
+    (async () => {
+      DrawList();
+    })();
+  },[]);
+
+  function DrawList(){
+    axios.get('/drawing/list')
+          .then((res) => {
+            console.log(res.data);
+            const newData = res.data.map((x,idx) => ({key:idx, id: x.id, name: x.canvas}));
+            console.log(newData);
+            setData(newData);
+          }).catch((Error) => {
+            console.log(Error);
+          });
+
+}
   return(
-    //<div style={{width:500, height:500}}>
-    <Grid 
-    data={data}
-    columns={columns}
-    rowHeight={25}
-    bodyHeight={10}
-    rowHeaders={["rowNum"]}
+    <div>
+    {/* {id.map((it)=>(
+      <Grid 
+      rowHeaders={['rowNum']}
+      data={[{id: it.id, name: it.canvas }]}
+      columns={columns}
+      rowHeight={25}
+      bodyHeight={100}
     />
-    //</div>
+    ))
+      } */}
+          <Grid 
+      data={data}
+      columns={columns}
+    />
+      </div> 
   );
 };
 
