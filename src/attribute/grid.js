@@ -1,15 +1,18 @@
 import Grid from '@toast-ui/react-grid'
 import axios from 'axios';
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import 'tui-grid/dist/tui-grid.css'
 
-function Table(){
+function Table(props){
+
+  const navigate = useNavigate();
 
   const [data, setData] = useState([]);
 
   const columns = [
-    {name: 'id', header: 'ID'},
-    {name: 'name', header: 'Name'},
+    {name: 'id', header: 'ID', width: 100, },
+    {name: 'name', header: 'Title', width:300},
   ];
 
   useEffect(() => {
@@ -22,7 +25,7 @@ function Table(){
     axios.get('/drawing/list')
           .then((res) => {
             console.log(res.data);
-            const newData = res.data.map((x,idx) => ({key:idx, id: x.id, name: x.canvas}));
+            const newData = res.data.map((x,idx) => ({key:idx, id: x.id, name: x.title}));
             console.log(newData);
             setData(newData);
           }).catch((Error) => {
@@ -30,23 +33,20 @@ function Table(){
           });
 
 }
+
+function getRowNum(object){
+  props.setData(object['rowKey'] + 1);
+  navigate("/drawing");
+}
   return(
-    <div>
-    {/* {id.map((it)=>(
-      <Grid 
-      rowHeaders={['rowNum']}
-      data={[{id: it.id, name: it.canvas }]}
-      columns={columns}
-      rowHeight={25}
-      bodyHeight={100}
-    />
-    ))
-      } */}
+    <div id="grid" style={{width:"350px" , right:"300px", display:"grid"}}>
           <Grid 
+      bodyHeight={"auto"}
       data={data}
       columns={columns}
+      onDblclick={getRowNum}
     />
-      </div> 
+    </div> 
   );
 };
 

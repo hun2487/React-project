@@ -8,9 +8,7 @@ function MenuBtn({text, onClick}){
                     type='dashed'
                     onClick={onClick}>
                         {text}
-                    
             </Button>
     );
 }
-
 export default MenuBtn;

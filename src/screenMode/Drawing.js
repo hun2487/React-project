@@ -9,12 +9,13 @@ import 'tui-grid/dist/tui-grid.css';
 import polygonimg from './polygon.png';
 import Grid from '@toast-ui/react-grid';
 import axios from 'axios';
+import { ImportOutlined, ExportOutlined , CloudUploadOutlined, CloudDownloadOutlined, DeleteOutlined} from "@ant-design/icons";
 
 const { Content } = Layout;
 
-function Drawing(){
+function Drawing({gridId}){
     //const url = "http://localhost:8080";
-
+    
     const [list, setList] = useState([]); //Json
     const canvasRef = useRef(null);
     const [ctx, setCtx] = useState();
@@ -26,6 +27,8 @@ function Drawing(){
     const [linepos, setLinePos] = useState([]); // line 위치
     const [isDraw, setIsDraw] = useState(false); //isDrawing
     const [text, setText] = useState();
+    const [title, setTitle] = useState();
+    const [loadData, setLoadData] = useState();
 
     const data = [
         {mode: mode, color: color},
@@ -39,17 +42,23 @@ function Drawing(){
     const InputRef = () => {
         const selectFile = useRef("");
         return(
-            <Button onClick={() => selectFile.current.click()} style={{left:"350px"}}>
+            <Button icon={<ImportOutlined />} onClick={() => selectFile.current.click()} style={{left:"290px"}}>
                 <input style={{float:"right", display:"none"}} ref={selectFile} type={"file"} onChange={json_file_import}></input>
-                Import</Button>
+                ㅤimport
+            </Button>
         )
     }
-
 
     useEffect(() => {
         const canvas = canvasRef.current;
         setCtx(canvas.getContext("2d"));
     }, []);
+
+    useEffect(() => {
+        (async () => {
+          Load();
+        })();
+      },[]);
 
     function drawLineStart(e){        
         setIsDraw(true);
@@ -107,7 +116,6 @@ function Drawing(){
             color: color,
         }
         setList(list.concat(polylist));
-
         console.log(polylist);
     }
 
@@ -131,7 +139,6 @@ function Drawing(){
 
         console.log(lastpolylist);
         setList(list.concat(lastpolylist));
-
         //값 초기화
         setPolygon([]);
         setLastCoordinate([]);
@@ -169,11 +176,19 @@ function Drawing(){
         console.log(list);
     }
 
+    
+    function click(e){
+        let currentX = e.clientX - canvasRef.current.offsetLeft;
+        let currentY = e.clientY - canvasRef.current.offsetTop;
+
+        console.log(currentX, currentY);
+    }
+
     function AddInput(bool){
         return (
             <Input
             style={{width:"200px",
-                    left:"120px"}}
+                    left:"30px"}}
             onKeyDown={handleEnter}
             //disabled={bool}
             placeholder={"text를 입력하세요."}
@@ -188,6 +203,18 @@ function Drawing(){
             setText(e.target.value);
         };
     }
+
+    function onChange(e){
+        const input = e.target.value;
+        setTitle(input);
+        console.log(title);
+    }
+
+    // function onChangeid(e){
+    //     const input = e.target.value;
+    //     setId(input);
+    //     console.log(id);
+    // }
 
     function drawText(e){
         if(text === undefined){
@@ -209,6 +236,11 @@ function Drawing(){
             }
             setList(list.concat(textlist));
         }
+    }
+
+    function clearCanvas(){ //canvas 초기화
+        ctx.clearRect(0,0,canvasRef.current.width, canvasRef.current.height);
+        setList([])
     }
 
     function json_file_export(){ //파일 export
@@ -271,29 +303,73 @@ function Drawing(){
             }
         }
     }
-    //JSON.stringify(list)
+
     function Save(){
+        if(title === undefined){
+            alert("Title을 입력하세요");
+        }else{
         axios.post('/drawing',
-        { "canvas": JSON.stringify(list)} //Json string으로 변환하여 서버로 post
-         ,{
+        { 
+            "title": title,
+            "canvas": JSON.stringify(list)} //Json string으로 변환하여 서버로 post
+        ,{
             headers: {
                 "Content-Type" : "application/json", //// `application/json`, //서버에 json으로 보냄
             }
         }).then((res) =>{
             console.log(res)
-        })
-        
-        // let data;
-        // axios.get('/drawing/list')
-        //      .then((res) => {
-        //         data=res.data;
-        //         console.log(data[1]);
-        //     })
-        //     .catch((Error) =>{
-        //         console.log(Error);
-        //     });
+            })
+            setTitle()
+        }
     }
-    
+
+    function Load(){
+        axios.get(`/drawing/${gridId}`)
+             .then((res) => {
+                const newData = JSON.parse(res.data.canvas);
+                setLoadData(newData);
+            })
+            .catch((Error) =>{
+                console.log(Error);
+            });
+            console.log(loadData.length);
+            for(var i=0; i<loadData.length; i++){ //Json file 한 줄씩 읽기.
+                let type = loadData[i];
+                console.log(type);
+                if(type.category === 'line'){
+                    setIsDraw(true);
+                    ctx.strokeStyle = type.color;
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.moveTo(type.mx,type.my);
+                    ctx.lineTo(type.lx, type.ly);
+                    ctx.stroke();
+                    ctx.closePath();
+                    setIsDraw(false);
+                }else if(type.category === 'rectangle'){
+                    setIsDraw(true);
+                    ctx.strokeStyle = type.color;
+                    ctx.lineWidth = 3;
+                    ctx.strokeRect(type.mx, type.my, type.lx, type.ly);
+                    setIsDraw(false);
+                }else if(type.category === "text"){
+                    ctx.textBaseline="top";
+                    ctx.font = "14px sans-serif";
+                    ctx.fillStyle = type.color;
+                    ctx.fillText(type.text, type.lx, type.ly);
+                }else if(type.category === "polygon"){
+                    setIsDraw(true);
+                    ctx.strokeStyle = type.color;
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.moveTo(type.mx, type.my);
+                    ctx.lineTo(type.lx, type.ly);
+                    ctx.stroke();
+                    ctx.closePath();
+                    setIsDraw(false);
+                    }
+                }
+    }
     return (
     <Layout>
         <div className="ColorControl" style={{float:"right", padding:5, width:"80%"}}>
@@ -305,14 +381,24 @@ function Drawing(){
                 <img src={recimg} width='30' height='30' onClick={() => setMode("rectangle")}></img>
                 <img src={textimg} width='30' height='30'  onClick={() => setMode("text")}></img>
                 <img src={polygonimg} width='30' height='30'  onClick={() => setMode("polygon")}></img>
-                <AddInput bool={true} />
-                <Button disabled={false} onClick={drawPolygonclose} style={{left:"230px"}}>poly draw</Button>
-                <Button disabled={false} onClick={json_file_export} style={{left:"350px"}}>export</Button>
+                <button className="color-btn" data-color="blue" onClick={() => setMode("click")}></button>
+                <AddInput bool={true} /> 
+                <Button disabled={false} onClick={drawPolygonclose} style={{left:"50px"}}>poly draw</Button>
+                <Button icon={<ExportOutlined/>} disabled={false} onClick={json_file_export} style={{left:"290px"}}>export</Button>
                 <InputRef />
-                <Button style={{left:"350px"}} onClick={Save}>Save</Button>
         </div>
-
         <Content className="container" style={{margin:10 ,padding: "0 20px"}}>
+            <div>Title: 
+            <Input style={{width:"200px",left:"20px"}}
+            onChange={onChange}
+            value={title}
+            placeholder={"Title를 입력하세요."}
+            required
+            />
+            <Button icon={<DeleteOutlined />} style={{left:"20px"}} onClick={clearCanvas}></Button>
+            <Button icon={<CloudUploadOutlined />} style={{left:"545px"}} onClick={Save}>Save</Button>
+            <Button icon={<CloudDownloadOutlined/>} style={{left:"545px"}} onClick={Load}>Load</Button>
+            </div>
                     <canvas className="canvas" style={canvasStyle} ref={canvasRef} width={800} height={500} 
                         onMouseDown={(e) =>
                             {
@@ -324,6 +410,8 @@ function Drawing(){
                                     drawText(e);
                                 }else if(mode ==="polygon"){
                                     drawPolygon(e);
+                                }else if(mode === "click"){
+                                    click(e);
                                 }
                             }
                         }
@@ -348,7 +436,6 @@ function Drawing(){
                         <Grid data={data} columns={columns} rowHeight={25} bodyHeight={30}/>
                     </div>
         </Content>
-
     </Layout>
     );
 }
