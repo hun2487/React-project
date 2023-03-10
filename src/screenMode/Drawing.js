@@ -13,7 +13,7 @@ import { ImportOutlined, ExportOutlined , CloudUploadOutlined, CloudDownloadOutl
 
 const { Content } = Layout;
 
-function Drawing({gridId}){
+function Drawing({gridId=0}){
     //const url = "http://localhost:8080";
     
     const [list, setList] = useState([]); //Json
@@ -55,10 +55,14 @@ function Drawing({gridId}){
     }, []);
 
     useEffect(() => {
-        (async () => {
-          Load();
-        })();
-      },[]);
+       // debugger
+        console.log(gridId);
+        if(gridId){
+            (async () => {
+                Load();
+              })();
+        }
+      },[gridId]);
 
     function drawLineStart(e){        
         setIsDraw(true);
@@ -327,48 +331,51 @@ function Drawing({gridId}){
         axios.get(`/drawing/${gridId}`)
              .then((res) => {
                 const newData = JSON.parse(res.data.canvas);
-                setLoadData(newData);
+                //setLoadData(newData);
+                for(var i=0; i<newData.length; i++){ //Json file 한 줄씩 읽기.
+                    const canvas = canvasRef.current;
+                    let ctx = canvas.getContext("2d");
+                    let type = newData[i];
+                    if(type.category === 'line'){                        
+                        setIsDraw(true);
+                        ctx.strokeStyle = "black";
+                        ctx.lineWidth = 3;
+                        ctx.beginPath();
+                        ctx.moveTo(type.mx,type.my);
+                        ctx.lineTo(type.lx, type.ly);
+                        ctx.stroke();
+                        ctx.closePath();
+                        setIsDraw(false);
+                    }else if(type.category === 'rectangle'){
+                        setIsDraw(true);
+                        ctx.strokeStyle = type.color;
+                        ctx.lineWidth = 3;
+                        ctx.strokeRect(type.mx, type.my, type.lx, type.ly);
+                        setIsDraw(false);
+                    }else if(type.category === "text"){
+                        ctx.textBaseline="top";
+                        ctx.font = "14px sans-serif";
+                        ctx.fillStyle = type.color;
+                        ctx.fillText(type.text, type.lx, type.ly);
+                    }else if(type.category === "polygon"){
+                        setIsDraw(true);
+                        ctx.strokeStyle = type.color;
+                        ctx.lineWidth = 3;
+                        ctx.beginPath();
+                        ctx.moveTo(type.mx, type.my);
+                        ctx.lineTo(type.lx, type.ly);
+                        ctx.stroke();
+                        ctx.closePath();
+                        setIsDraw(false);
+                        }
+                    }
+
             })
             .catch((Error) =>{
                 console.log(Error);
             });
-            console.log(loadData.length);
-            for(var i=0; i<loadData.length; i++){ //Json file 한 줄씩 읽기.
-                let type = loadData[i];
-                console.log(type);
-                if(type.category === 'line'){
-                    setIsDraw(true);
-                    ctx.strokeStyle = type.color;
-                    ctx.lineWidth = 3;
-                    ctx.beginPath();
-                    ctx.moveTo(type.mx,type.my);
-                    ctx.lineTo(type.lx, type.ly);
-                    ctx.stroke();
-                    ctx.closePath();
-                    setIsDraw(false);
-                }else if(type.category === 'rectangle'){
-                    setIsDraw(true);
-                    ctx.strokeStyle = type.color;
-                    ctx.lineWidth = 3;
-                    ctx.strokeRect(type.mx, type.my, type.lx, type.ly);
-                    setIsDraw(false);
-                }else if(type.category === "text"){
-                    ctx.textBaseline="top";
-                    ctx.font = "14px sans-serif";
-                    ctx.fillStyle = type.color;
-                    ctx.fillText(type.text, type.lx, type.ly);
-                }else if(type.category === "polygon"){
-                    setIsDraw(true);
-                    ctx.strokeStyle = type.color;
-                    ctx.lineWidth = 3;
-                    ctx.beginPath();
-                    ctx.moveTo(type.mx, type.my);
-                    ctx.lineTo(type.lx, type.ly);
-                    ctx.stroke();
-                    ctx.closePath();
-                    setIsDraw(false);
-                    }
-                }
+            // console.log(loadData.length);
+            
     }
     return (
     <Layout>
